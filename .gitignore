@@ -1,6 +1,8 @@
 # Data files
 visualizations/*
 !visualizations/.gitkeep
+reports/*
+!reports/.gitkeep
 logs/*
 !logs/.gitkeep
 !data/.gitkeep
