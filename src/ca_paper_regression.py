@@ -275,8 +275,9 @@ class _UnmixingCNN(nn.Module):
         return self.fc(self.conv(x))
 
 
-def _fit_cnn_unmixing(x_train, y_train, out_dim,
-                      epochs=100, batch_size=32, lr=1e-3):
+def _fit_cnn_unmixing(x_train, y_train, out_dim, epochs=500,
+                      batch_size=32, lr=1e-3, patience=50,
+                      min_delta=1e-4):
     """Fit the original CNN unmixing model. Author: Xuanting Liu."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = _UnmixingCNN(x_train.shape[1], out_dim).to(device)
@@ -286,6 +287,9 @@ def _fit_cnn_unmixing(x_train, y_train, out_dim,
                         batch_size=batch_size, shuffle=True)
     opt = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss()
+    best_loss = np.inf
+    best_state = None
+    stale_epochs = 0
     model.train()
     for epoch in range(epochs):
         total = 0.0
@@ -297,9 +301,25 @@ def _fit_cnn_unmixing(x_train, y_train, out_dim,
             loss.backward()
             opt.step()
             total += loss.item() * bx.size(0)
+        epoch_loss = total / len(x_train)
+        if epoch_loss < best_loss - min_delta:
+            best_loss = epoch_loss
+            best_state = {
+                k: v.detach().cpu().clone()
+                for k, v in model.state_dict().items()
+            }
+            stale_epochs = 0
+        else:
+            stale_epochs += 1
         if (epoch + 1) % 100 == 0:
             print(f"    CNN epoch {epoch + 1}/{epochs}, "
-                  f"loss={total / len(x_train):.4f}")
+                  f"loss={epoch_loss:.4f}, best={best_loss:.4f}")
+        if stale_epochs >= patience:
+            print(f"    CNN early stop at epoch {epoch + 1}/{epochs}, "
+                  f"best_loss={best_loss:.4f}")
+            break
+    if best_state is not None:
+        model.load_state_dict(best_state)
     return model
 
 
