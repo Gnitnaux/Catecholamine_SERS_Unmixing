@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from src.ca_paper_regression import CA_Paper_Unmixing_Models
 from src.ca_paper_plsr import CA_Paper_PLSR_Unmixing
-from src.byol_model import BYOLPipeline, CA_Paper_Full_Pipeline
+from src.byol_model import BYOLFullPipeline, CA_Paper_Full_Pipeline
 
 # Add src directory to Python path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -89,8 +89,11 @@ def main():
         data_dir = os.path.join('data', args.data_dir)
         mix_filter = {'mix_only': False, 'present_conc_range': (10, 20)}
         re_train = args.re_training == "True"
-        BYOLPipeline(data_dir, args.model_dir, **mix_filter, stage1=True, 
-                         stage2=True, re_training=re_train, plot=True)
+        BYOLFullPipeline(data_dir, args.model_dir,
+                          conc_threshold=None,
+                          **mix_filter,
+                          stage1=True, stage2=True, re_training=re_train,
+                          plot=True, dataset=args.data_dir)
         print("BYOL Pipeline completed.")
 
     elif args.mode == "CA_Paper_Full_Pipeline":
@@ -100,8 +103,8 @@ def main():
         mix_filter = {'mix_only': False, 'present_conc_range': (10, 20)}
         re_train = args.re_training == "True"
         CA_Paper_Full_Pipeline(
-            data_dir, args.model_dir, **mix_filter,
-            plot=True, re_training=re_train, stage1=True)
+            data_dir, args.model_dir, **mix_filter, plot=True, 
+            re_training=re_train, stage1=True, dataset = args.data_dir)
         print("CA Paper Full Pipeline completed.")
 
     print("\nDone!")

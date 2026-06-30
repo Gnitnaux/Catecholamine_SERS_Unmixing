@@ -80,6 +80,19 @@ def normalize_spectra(raman_shift, intensity, peak_position=920, peak_range=20, 
     return x / (scale + 1e-8)
 
 
+def spectra_normalization(Raman_Shift, Intensity, peak_position=1480,
+                          peak_range=20, plot=False, mode="train",
+                          minmax_scale=True):
+    """Compatibility wrapper for legacy BYOL preprocessing. Author: Xuanting Liu."""
+    _ = plot, mode
+    return normalize_spectra(
+        Raman_Shift, Intensity,
+        peak_position=peak_position,
+        peak_range=peak_range,
+        minmax=minmax_scale,
+    )
+
+
 def filter_mix_conc(intensity, concentrations, groups, mixtures, mix_only=False, present_conc_range=None):
     """Filter spectra by mixture type and present concentration range. Author: Xuanting Liu."""
     keep = np.ones(len(intensity), dtype=bool)
